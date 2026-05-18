@@ -274,17 +274,19 @@ export default function App() {
       {/* Main Grid View Dashboard Layout */}
       <div className="grid-container">
         
-        {/* COLUMN 1: Video Feed + AI Commentary */}
+        {/* COLUMN 1: Fixed Fluid Native Video Feed + AI Commentary */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           
-          {/* Native HTML5 Stadium Video Feed */}
+          {/* Native HTML5 Stadium Video Feed — Ultra Stable & Multi-Device Fixed */}
           <div style={{ background: "#000", borderRadius: "16px", overflow: "hidden", aspectRatio: "16/9", position: "relative", border: "1px solid #1f2937", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
             <video 
-              src="https://assets.mixkit.co/videos/preview/mixkit-playing-cricket-in-a-stadium-40552-large.mp4" 
+              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
               autoPlay 
               muted 
               loop 
               controls
+              playsInline
+              preload="auto"
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
             <div style={{ position: "absolute", top: "12px", left: "12px", background: "#ef4444", color: "#fff", padding: "4px 10px", borderRadius: "6px", fontSize: "10px", fontWeight: "bold", letterSpacing: "1px", zIndex: 5 }}>
@@ -299,7 +301,6 @@ export default function App() {
           <div style={{ background: "#111827", borderRadius: "16px", padding: "20px", border: "1px solid #1f2937" }}>
             <h3 style={{ margin: "0 0 14px 0", color: "#38bdf8", fontSize: "15px" }}>🎙️ Multimodal Agentic Panel Commentary</h3>
             
-            {/* Horizontal Responsive Scroller for Buttons */}
             <div className="persona-scroller">
               {PERSONAS.map(p => (
                 <button key={p.id} onClick={() => { setPersona(p.id); setLang(p.lang); }} className="persona-btn" style={{
