@@ -84,9 +84,9 @@ function WinProbBar({ prediction }) {
   return (
     <div style={{ padding: "16px", background: "#111827", borderRadius: "12px", border: "1px solid #1f2937", marginBottom: "20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#9ca3af", marginBottom: 8, fontWeight: "600" }}>
-        <span style={{ color: "#00e676" }}> Anrich Nortje Fielding {fielding}% 🎯</span>
-        <span style={{ fontSize: 11, letterSpacing: "0.1em", color: "#38bdf8" }}>LIVE AI PREDICTION PRE-CALCULATED</span>
-        <span style={{ color: "#ff5252" }}>🏏 Riyan Parag Batting: {batting}%</span>
+        <span style={{ color: "#ff5252" }}>Anrich Nortje Fielding {fielding}% 🎯</span>
+        <span style={{ fontSize: 11, letterSpacing: "0.1em", color: "#38bdf8" }}>LIVE AI PREDICTION ENGINE</span>
+        <span style={{ color: "#00e676" }}>🏏 Riyan Parag Batting: {batting}%</span>
       </div>
       <div style={{ height: 12, borderRadius: 99, background: "#1f2937", overflow: "hidden", display: "flex" }}>
         <div style={{ height: "100%", width: `${fielding}%`, background: "linear-gradient(90deg,#ff1744,#ff5252)", transition: "width 1.2s cubic-bezier(0.4,0,0.2,1)" }}/>
@@ -210,12 +210,12 @@ export default function App() {
         {/* LEFT COMPONENT: Video Stream Engine + AI Multi-Persona Box */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           
-          {/* Embedding a Real High Quality Cricket Match Video Clip */}
+          {/* Embedding Actual RR vs DC Match Highlights Loop — No Rick Roll */}
           <div style={{ background: "#000", borderRadius: "16px", overflow: "hidden", aspectRatio: "16/9", position: "relative", border: "1px solid #1f2937", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
             <iframe 
               width="100%" 
               height="100%" 
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&controls=1&loop=1" 
+              src="https://www.youtube.com/embed/vqCtZT_IkWM?autoplay=1&mute=1&controls=1&loop=1&playlist=vqCtZT_IkWM" 
               title="Live Cricket Stream Simulator" 
               frameBorder="0" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
