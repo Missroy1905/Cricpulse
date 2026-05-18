@@ -52,7 +52,6 @@ function LiveChatRoom({ matchId }) {
     <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", height: "300px" }}>
       <h3 style={{ margin: "0 0 10px 0", fontSize: "14px", color: "#38bdf8" }}>💬 Live Fan Stadium Chat Room</h3>
       
-      {/* Messages Stream */}
       <div style={{ flex: 1, overflowY: "auto", marginBottom: "10px", paddingRight: "5px", display: "flex", flexDirection: "column", gap: "8px" }}>
         {messages.map((msg) => (
           <div key={msg.id} style={{ background: "#0a0a0f", padding: "8px 12px", borderRadius: "8px", border: "1px solid #1f2937", fontSize: "13px" }}>
@@ -62,7 +61,6 @@ function LiveChatRoom({ matchId }) {
         <div ref={chatEndRef} />
       </div>
 
-      {/* Input Form */}
       <form onSubmit={sendMessage} style={{ display: "flex", gap: "8px" }}>
         <input 
           type="text" 
@@ -85,7 +83,7 @@ function WinProbBar({ prediction }) {
     <div style={{ padding: "16px", background: "#111827", borderRadius: "12px", border: "1px solid #1f2937", marginBottom: "20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#9ca3af", marginBottom: 8, fontWeight: "600" }}>
         <span style={{ color: "#ff5252" }}>Anrich Nortje Fielding {fielding}% 🎯</span>
-        <span style={{ fontSize: 11, letterSpacing: "0.1em", color: "#38bdf8" }}>LIVE AI PREDICTION ENGINE</span>
+        <span className="hide-on-mobile" style={{ fontSize: 11, letterSpacing: "0.1em", color: "#38bdf8" }}>LIVE AI PREDICTION ENGINE</span>
         <span style={{ color: "#00e676" }}>🏏 Riyan Parag Batting: {batting}%</span>
       </div>
       <div style={{ height: 12, borderRadius: 99, background: "#1f2937", overflow: "hidden", display: "flex" }}>
@@ -180,81 +178,154 @@ export default function App() {
   const activePersonaData = latestBall?.personas?.[persona] || {};
 
   return (
-    <div style={{ background: "#0a0a0f", minHeight: "100vh", color: "#f3f4f6", fontFamily: "system-ui, sans-serif", padding: "24px" }}>
+    <div style={{ background: "#0a0a0f", minHeight: "100vh", color: "#f3f4f6", fontFamily: "system-ui, sans-serif", padding: "16px" }}>
+      
+      {/* Dynamic CSS Responsive Injection Styles */}
+      <style>{`
+        .main-header {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          border-bottom: 1px solid #1f2937;
+          padding-bottom: 16px;
+          margin-bottom: 24px;
+        }
+        .score-box {
+          display: flex;
+          gap: 16px;
+          background: #111827;
+          padding: 12px 20px;
+          border-radius: 12px;
+          border: 1px solid #1f2937;
+          justify-content: space-between;
+          width: 100%;
+        }
+        .grid-container {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 24px;
+          max-width: 1600px;
+          margin: 0 auto;
+        }
+        .persona-scroller {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 20px;
+          overflow-x: auto;
+          padding-bottom: 6px;
+          scrollbar-width: none;
+        }
+        .persona-scroller::-webkit-scrollbar {
+          display: none;
+        }
+        .persona-btn {
+          padding: 10px 16px;
+          border-radius: 8px;
+          border: none;
+          cursor: pointer;
+          font-weight: bold;
+          font-size: 13px;
+          white-space: nowrap;
+          transition: all 0.2s ease;
+        }
+        @media (max-width: 768px) {
+          .hide-on-mobile {
+            display: none !important;
+          }
+        }
+        @media (min-width: 1024px) {
+          .main-header {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .score-box {
+            width: auto;
+            gap: 24px;
+          }
+          .grid-container {
+            grid-template-columns: 1.2fr 1fr;
+          }
+        }
+      `}</style>
       
       {/* Top Navbar */}
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #1f2937", paddingBottom: "16px", marginBottom: "24px" }}>
+      <header className="main-header">
         <div>
-          <h1 style={{ margin: 0, fontSize: "26px", fontWeight: "800", color: "#38bdf8", letterSpacing: "-0.5px" }}>
-            🏏 CricPulse <span style={{ fontSize: "12px", background: "#0369a1", padding: "4px 10px", borderRadius: "6px", color: "#fff", marginLeft: "10px", verticalAlign: "middle" }}>LIVE ANALYSIS ENGINE v2.5</span>
+          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "800", color: "#38bdf8", letterSpacing: "-0.5px" }}>
+            🏏 CricPulse <span style={{ fontSize: "11px", background: "#0369a1", padding: "3px 8px", borderRadius: "4px", color: "#fff", marginLeft: "6px", verticalAlign: "middle" }}>LIVE v2.6</span>
           </h1>
-          <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#6b7280" }}>Google Cloud AI League · Interactive Multi-Agent Stream Integration</p>
+          <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "#6b7280" }}>Google Cloud AI League · Cross-Platform Adaptive Interface</p>
         </div>
         
-        {/* Real Live Scoreboard Layout */}
-        <div style={{ display: "flex", gap: "24px", background: "#111827", padding: "12px 24px", borderRadius: "12px", border: "1px solid #1f2937" }}>
+        {/* Scoreboard Layout */}
+        <div className="score-box">
           <div>
-            <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "bold" }}>RAJASTHAN ROYALS (RR)</div>
-            <div style={{ fontSize: "22px", fontWeight: "900", color: "#00e676" }}>{latestBall?.event?.score || "181/4"}</div>
+            <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "bold" }}>RAJASTHAN ROYALS</div>
+            <div style={{ fontSize: "20px", fontWeight: "900", color: "#00e676" }}>{latestBall?.event?.score || "181/4"}</div>
           </div>
-          <div style={{ borderLeft: "1px solid #374151", paddingLeft: "24px", textAlign: "right" }}>
-            <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "bold" }}>MATCH STATUS</div>
-            <div style={{ fontSize: "14px", fontWeight: "700", color: "#38bdf8", marginTop: 6 }}>{latestBall?.event?.required || "15 runs needed off 6 balls"}</div>
+          <div style={{ borderLeft: "1px solid #374151", paddingLeft: "20px", textAlign: "right" }}>
+            <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "bold" }}>MATCH STATUS</div>
+            <div style={{ fontSize: "13px", fontWeight: "700", color: "#38bdf8", marginTop: 4 }}>{latestBall?.event?.required || "15 runs needed off 6 balls"}</div>
           </div>
         </div>
       </header>
 
       {/* Main Grid View Dashboard Layout */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "24px", maxWidth: "1600px", margin: "0 auto" }}>
+      <div className="grid-container">
         
-        {/* LEFT COMPONENT: Video Stream Engine + AI Multi-Persona Box */}
+        {/* COLUMN 1: Video Feed + AI Commentary */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           
-          {/* Embedding Actual RR vs DC Match Highlights Loop — No Rick Roll */}
+          {/* Native HTML5 Stadium Video Feed */}
           <div style={{ background: "#000", borderRadius: "16px", overflow: "hidden", aspectRatio: "16/9", position: "relative", border: "1px solid #1f2937", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
-            <iframe 
-              width="100%" 
-              height="100%" 
-              src="https://www.youtube.com/embed/vqCtZT_IkWM?autoplay=1&mute=1&controls=1&loop=1&playlist=vqCtZT_IkWM" 
-              title="Live Cricket Stream Simulator" 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-              allowFullScreen
-              style={{ position: "absolute", top: 0, left: 0, border: "none" }}
-            ></iframe>
-            <div style={{ position: "absolute", top: "16px", left: "16px", background: "#ef4444", color: "#fff", padding: "4px 12px", borderRadius: "6px", fontSize: "11px", fontWeight: "bold", letterSpacing: "1px", zIndex: 5 }}>
-              🔴 LIVE BROADCAST RE-STREAM
+            <video 
+              src="https://assets.mixkit.co/videos/preview/mixkit-playing-cricket-in-a-stadium-40552-large.mp4" 
+              autoPlay 
+              muted 
+              loop 
+              controls
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+            <div style={{ position: "absolute", top: "12px", left: "12px", background: "#ef4444", color: "#fff", padding: "4px 10px", borderRadius: "6px", fontSize: "10px", fontWeight: "bold", letterSpacing: "1px", zIndex: 5 }}>
+              🔴 LIVE
+            </div>
+            <div style={{ position: "absolute", bottom: "12px", right: "12px", background: "rgba(17,24,39,0.8)", padding: "4px 8px", borderRadius: "6px", fontSize: "11px", color: "#cbd5e1" }}>
+              Over: {latestBall?.event?.over || "18.6"}
             </div>
           </div>
 
           {/* AI Persona Box */}
-          <div style={{ background: "#111827", borderRadius: "16px", padding: "24px", border: "1px solid #1f2937" }}>
-            <h3 style={{ margin: "0 0 16px 0", color: "#38bdf8", fontSize: "16px" }}>🎙️ Multimodal Agentic Panel Commentary</h3>
-            <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+          <div style={{ background: "#111827", borderRadius: "16px", padding: "20px", border: "1px solid #1f2937" }}>
+            <h3 style={{ margin: "0 0 14px 0", color: "#38bdf8", fontSize: "15px" }}>🎙️ Multimodal Agentic Panel Commentary</h3>
+            
+            {/* Horizontal Responsive Scroller for Buttons */}
+            <div className="persona-scroller">
               {PERSONAS.map(p => (
-                <button key={p.id} onClick={() => { setPersona(p.id); setLang(p.lang); }} style={{
-                  flex: 1, padding: "12px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "bold", fontSize: "13px",
+                <button key={p.id} onClick={() => { setPersona(p.id); setLang(p.lang); }} className="persona-btn" style={{
                   background: persona === p.id ? p.color : "#1f2937", color: persona === p.id ? "#0a0a0f" : "#9ca3af"
                 }}>{p.label}</button>
               ))}
             </div>
-            <div style={{ background: "#0a0a0f", padding: "20px", borderRadius: "12px", border: "1px solid #1f2937", minHeight: "100px" }}>
-              <p style={{ fontStyle: "italic", fontSize: "16px", color: "#e5e7eb", lineHeight: "1.6", margin: 0 }}>
+
+            <div style={{ background: "#0a0a0f", padding: "16px", borderRadius: "12px", border: "1px solid #1f2937", minHeight: "90px" }}>
+              <p style={{ fontStyle: "italic", fontSize: "15px", color: "#e5e7eb", lineHeight: "1.6", margin: 0 }}>
                 "{activePersonaData.commentary || "Awaiting real-time stream event sync..."}"
               </p>
             </div>
           </div>
         </div>
 
-        {/* RIGHT COMPONENT: Charts, Analytics, Polls and Live Stadium Chat */}
+        {/* COLUMN 2: Charts, Polls & Global Chat Room */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           {latestBall && <WinProbBar prediction={latestBall.win_prediction}/>}
-          <div style={{ background: "#111827", borderRadius: "16px", border: "1px solid #1f2937", padding: "20px" }}>
+          
+          <div style={{ background: "#111827", borderRadius: "16px", border: "1px solid #1f2937", padding: "16px" }}>
             <MomentumChart />
           </div>
+
           {latestBall && <BallCard ball={latestBall} matchId={MATCH_ID} activePersona={persona}/>}
           
-          {/* Fully Integrated Chat Window */}
           <LiveChatRoom matchId={MATCH_ID} />
         </div>
       </div>
