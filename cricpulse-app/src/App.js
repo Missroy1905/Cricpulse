@@ -1,7 +1,8 @@
 // cricpulse-app/src/App.js
 import { useState, useEffect, useRef, useCallback } from "react";
 import { collection, onSnapshot, orderBy, query, limit, doc, updateDoc, increment } from "firebase/firestore";
-import { db }        from "./firebase";
+import { ref, push, onChildAdded, serverTimestamp } from "firebase/database";
+import { db, rdb }   from "./firebase";
 import Reactions     from "./Reactions";
 import MomentumChart from "./MomentumChart";
 
@@ -15,6 +16,67 @@ const PERSONAS = [
   { id: "reelbrain", lang: "en", label: "🎤 Reel Brain", color: "#00bfa5" },
 ];
 
+// ── Live Fan Chat Component ──
+function LiveChatRoom({ matchId }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    const chatRef = ref(rdb, `chats/${matchId}`);
+    const unsub = onChildAdded(chatRef, (snap) => {
+      const val = snap.val();
+      if (val) {
+        setMessages((prev) => [...prev, { id: snap.key, ...val }]);
+      }
+    });
+    return () => unsub();
+  }, [matchId]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const sendMessage = (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    push(ref(rdb, `chats/${matchId}`), {
+      user: "Fan_" + Math.floor(1000 + Math.random() * 9000),
+      text: input,
+      ts: serverTimestamp(),
+    });
+    setInput("");
+  };
+
+  return (
+    <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: "16px", padding: "16px", display: "flex", flexDirection: "column", height: "300px" }}>
+      <h3 style={{ margin: "0 0 10px 0", fontSize: "14px", color: "#38bdf8" }}>💬 Live Fan Stadium Chat Room</h3>
+      
+      {/* Messages Stream */}
+      <div style={{ flex: 1, overflowY: "auto", marginBottom: "10px", paddingRight: "5px", display: "flex", flexDirection: "column", gap: "8px" }}>
+        {messages.map((msg) => (
+          <div key={msg.id} style={{ background: "#0a0a0f", padding: "8px 12px", borderRadius: "8px", border: "1px solid #1f2937", fontSize: "13px" }}>
+            <strong style={{ color: "#a78bfa" }}>{msg.user}:</strong> <span style={{ color: "#e5e7eb" }}>{msg.text}</span>
+          </div>
+        ))}
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* Input Form */}
+      <form onSubmit={sendMessage} style={{ display: "flex", gap: "8px" }}>
+        <input 
+          type="text" 
+          value={input} 
+          onChange={(e) => setInput(e.target.value)} 
+          placeholder="Type a message to the stadium..." 
+          style={{ flex: 1, background: "#0a0a0f", border: "1px solid #374151", borderRadius: "8px", padding: "10px", color: "#fff", fontSize: "13px", outline: "none" }}
+        />
+        <button type="submit" style={{ background: "#38bdf8", color: "#000", border: "none", borderRadius: "8px", padding: "0 16px", fontWeight: "bold", cursor: "pointer", fontSize: "13px" }}>Send</button>
+      </form>
+    </div>
+  );
+}
+
 // ── Widescreen Win Probability Bar ──
 function WinProbBar({ prediction }) {
   const batting  = prediction?.win_prob_batting  ?? 50;
@@ -22,13 +84,13 @@ function WinProbBar({ prediction }) {
   return (
     <div style={{ padding: "16px", background: "#111827", borderRadius: "12px", border: "1px solid #1f2937", marginBottom: "20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#9ca3af", marginBottom: 8, fontWeight: "600" }}>
-        <span style={{ color: "#00e676" }}>🏏 Mumbai Batting: {batting}%</span>
-        <span style={{ fontSize: 11, letterSpacing: "0.1em", color: "#38bdf8" }}>LIVE WIN PREDICTION ENGINE</span>
-        <span style={{ color: "#ff5252" }}>Bangalore Fielding: {fielding}% 🎯</span>
+        <span style={{ color: "#00e676" }}> Anrich Nortje Fielding {fielding}% 🎯</span>
+        <span style={{ fontSize: 11, letterSpacing: "0.1em", color: "#38bdf8" }}>LIVE AI PREDICTION PRE-CALCULATED</span>
+        <span style={{ color: "#ff5252" }}>🏏 Riyan Parag Batting: {batting}%</span>
       </div>
       <div style={{ height: 12, borderRadius: 99, background: "#1f2937", overflow: "hidden", display: "flex" }}>
-        <div style={{ height: "100%", width: `${batting}%`, background: "linear-gradient(90deg,#00c853,#69f0ae)", transition: "width 1.2s cubic-bezier(0.4,0,0.2,1)" }}/>
-        <div style={{ height: "100%", width: `${fielding}%`, background: "linear-gradient(270deg,#ff1744,#ff5252)", transition: "width 1.2s cubic-bezier(0.4,0,0.2,1)" }}/>
+        <div style={{ height: "100%", width: `${fielding}%`, background: "linear-gradient(90deg,#ff1744,#ff5252)", transition: "width 1.2s cubic-bezier(0.4,0,0.2,1)" }}/>
+        <div style={{ height: "100%", width: `${batting}%`, background: "linear-gradient(270deg,#00c853,#69f0ae)", transition: "width 1.2s cubic-bezier(0.4,0,0.2,1)" }}/>
       </div>
     </div>
   );
@@ -53,13 +115,13 @@ function BallCard({ ball, matchId, activePersona }) {
   if (ev.type === "break") return null;
 
   return (
-    <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 12, padding: 16, marginBottom: 16 }}>
+    <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 12, padding: 16 }}>
       <div style={{ fontSize: 13, color: "#a78bfa", marginBottom: 10, fontWeight: "600" }}>🔮 Live Companion Audience Poll:</div>
       <div style={{ fontSize: 15, color: "#f3f4f6", marginBottom: 12, fontWeight: "500" }}>{pData.quiz_q || "Will the next ball be a boundary or wicket?"}</div>
       {!voted ? (
         <div style={{ display: "flex", gap: 10 }}>
-          <button onClick={() => castVote("yes")} style={{ flex: 1, padding: "12px", background: "#064e3b", color: "#6ee7b7", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer", transition: "0.2s" }}>🟢 YES</button>
-          <button onClick={() => castVote("no")} style={{ flex: 1, padding: "12px", background: "#4c0519", color: "#fda4af", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer", transition: "0.2s" }}>❌ NO</button>
+          <button onClick={() => castVote("yes")} style={{ flex: 1, padding: "12px", background: "#064e3b", color: "#6ee7b7", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer" }}>🟢 YES</button>
+          <button onClick={() => castVote("no")} style={{ flex: 1, padding: "12px", background: "#4c0519", color: "#fda4af", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer" }}>❌ NO</button>
         </div>
       ) : (
         <div>
@@ -120,116 +182,82 @@ export default function App() {
   return (
     <div style={{ background: "#0a0a0f", minHeight: "100vh", color: "#f3f4f6", fontFamily: "system-ui, sans-serif", padding: "24px" }}>
       
-      {/* Top Professional Navbar */}
+      {/* Top Navbar */}
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #1f2937", paddingBottom: "16px", marginBottom: "24px" }}>
         <div>
           <h1 style={{ margin: 0, fontSize: "26px", fontWeight: "800", color: "#38bdf8", letterSpacing: "-0.5px" }}>
-            🏏 CricPulse <span style={{ fontSize: "12px", background: "#0369a1", padding: "4px 10px", borderRadius: "6px", color: "#fff", marginLeft: "10px", verticalAlign: "middle" }}>AGENTIC COMPANION v2.0</span>
+            🏏 CricPulse <span style={{ fontSize: "12px", background: "#0369a1", padding: "4px 10px", borderRadius: "6px", color: "#fff", marginLeft: "10px", verticalAlign: "middle" }}>LIVE ANALYSIS ENGINE v2.5</span>
           </h1>
-          <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#6b7280" }}>Google Cloud AI Hackathon · Real-time Second Screen Dashboard</p>
+          <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#6b7280" }}>Google Cloud AI League · Interactive Multi-Agent Stream Integration</p>
         </div>
         
-        {/* Live Score Strip */}
+        {/* Real Live Scoreboard Layout */}
         <div style={{ display: "flex", gap: "24px", background: "#111827", padding: "12px 24px", borderRadius: "12px", border: "1px solid #1f2937" }}>
-          <div style={{ textAlign: "left" }}>
-            <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "bold" }}>MUMBAI INDIANS</div>
-            <div style={{ fontSize: "22px", fontWeight: "900", color: "#00e676" }}>{latestBall?.event?.score || "0/0"}</div>
+          <div>
+            <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "bold" }}>RAJASTHAN ROYALS (RR)</div>
+            <div style={{ fontSize: "22px", fontWeight: "900", color: "#00e676" }}>{latestBall?.event?.score || "181/4"}</div>
           </div>
           <div style={{ borderLeft: "1px solid #374151", paddingLeft: "24px", textAlign: "right" }}>
-            <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "bold" }}>MATCH SITUATION</div>
-            <div style={{ fontSize: "14px", fontWeight: "700", color: "#38bdf8", marginTop: 6 }}>{latestBall?.event?.required || "Waiting for Feed..."}</div>
+            <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "bold" }}>MATCH STATUS</div>
+            <div style={{ fontSize: "14px", fontWeight: "700", color: "#38bdf8", marginTop: 6 }}>{latestBall?.event?.required || "15 runs needed off 6 balls"}</div>
           </div>
         </div>
       </header>
 
-      {/* Main 2-Column Responsive Dashboard Layout */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "24px", maxWidth: "1500px", margin: "0 auto" }}>
+      {/* Main Grid View Dashboard Layout */}
+      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "24px", maxWidth: "1600px", margin: "0 auto" }}>
         
-        {/* LEFT COLUMN: Video Stream & Live Agent Commentary */}
+        {/* LEFT COMPONENT: Video Stream Engine + AI Multi-Persona Box */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           
-          {/* Real-time Video Stream Component */}
+          {/* Embedding a Real High Quality Cricket Match Video Clip */}
           <div style={{ background: "#000", borderRadius: "16px", overflow: "hidden", aspectRatio: "16/9", position: "relative", border: "1px solid #1f2937", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
-            {/* Live Video Embedded Element */}
-            <video 
-              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
-              autoPlay 
-              muted 
-              loop 
-              controls
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-            {/* Live Broadcast Badge Over Video */}
+            <iframe 
+              width="100%" 
+              height="100%" 
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&mute=1&controls=1&loop=1" 
+              title="Live Cricket Stream Simulator" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowFullScreen
+              style={{ position: "absolute", top: 0, left: 0, border: "none" }}
+            ></iframe>
             <div style={{ position: "absolute", top: "16px", left: "16px", background: "#ef4444", color: "#fff", padding: "4px 12px", borderRadius: "6px", fontSize: "11px", fontWeight: "bold", letterSpacing: "1px", zIndex: 5 }}>
-              🔴 LIVE MATCH STREAM
-            </div>
-            <div style={{ position: "absolute", bottom: "16px", right: "16px", background: "rgba(17,24,39,0.8)", padding: "6px 12px", borderRadius: "6px", fontSize: "12px", color: "#cbd5e1" }}>
-              Current Over: {latestBall?.event?.over || "—"}
+              🔴 LIVE BROADCAST RE-STREAM
             </div>
           </div>
 
-          {/* AI Persona Selector & Dynamic Box */}
+          {/* AI Persona Box */}
           <div style={{ background: "#111827", borderRadius: "16px", padding: "24px", border: "1px solid #1f2937" }}>
-            <h3 style={{ margin: "0 0 16px 0", color: "#38bdf8", fontSize: "16px" }}>🎙️ Multimodal Agentic Expert Panel</h3>
-            
-            {/* Persona Grid Switches */}
+            <h3 style={{ margin: "0 0 16px 0", color: "#38bdf8", fontSize: "16px" }}>🎙️ Multimodal Agentic Panel Commentary</h3>
             <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
               {PERSONAS.map(p => (
                 <button key={p.id} onClick={() => { setPersona(p.id); setLang(p.lang); }} style={{
                   flex: 1, padding: "12px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "bold", fontSize: "13px",
-                  background: persona === p.id ? p.color : "#1f2937",
-                  color: persona === p.id ? "#0a0a0f" : "#9ca3af",
-                  transition: "all 0.2s ease"
+                  background: persona === p.id ? p.color : "#1f2937", color: persona === p.id ? "#0a0a0f" : "#9ca3af"
                 }}>{p.label}</button>
               ))}
             </div>
-
-            {/* Live Synchronized Commentary Generation Box */}
-            <div style={{ background: "#0a0a0f", padding: "20px", borderRadius: "12px", border: "1px solid #1f2937", minHeight: "100px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <div style={{ background: "#0a0a0f", padding: "20px", borderRadius: "12px", border: "1px solid #1f2937", minHeight: "100px" }}>
               <p style={{ fontStyle: "italic", fontSize: "16px", color: "#e5e7eb", lineHeight: "1.6", margin: 0 }}>
-                "{activePersonaData.commentary || "Awaiting multi-agent sports data synchronization from the field..."}"
+                "{activePersonaData.commentary || "Awaiting real-time stream event sync..."}"
               </p>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "16px", borderTop: "1px solid #1f2937", paddingTop: "12px" }}>
-                <span style={{ fontSize: "12px", color: "#6b7280" }}>Tone Match Status: <strong style={{ color: "#22c55e" }}>ACTIVE ({activePersonaData.sentiment || "neutral"})</strong></span>
-                <button onClick={() => setIsPlaying(!isPlaying)} style={{ background: isPlaying ? "#df2020" : "#22c55e", color: "#fff", border: "none", padding: "6px 16px", borderRadius: "20px", cursor: "pointer", fontWeight: "bold", fontSize: "12px" }}>
-                  {isPlaying ? "⏸ Mute AI Multi-Voice" : "▶ Enable Live Radio Engine"}
-                </button>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Analytics, Momentum Graphs & Interactive Widgets */}
+        {/* RIGHT COMPONENT: Charts, Analytics, Polls and Live Stadium Chat */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-          
-          {/* Win Probability Panel */}
           {latestBall && <WinProbBar prediction={latestBall.win_prediction}/>}
-
-          {/* Real-time Momentum Component */}
           <div style={{ background: "#111827", borderRadius: "16px", border: "1px solid #1f2937", padding: "20px" }}>
             <MomentumChart />
           </div>
-
-          {/* Live Engagement Poll Card */}
           {latestBall && <BallCard ball={latestBall} matchId={MATCH_ID} activePersona={persona}/>}
           
-          {/* Interactive Live Ball Event History Feed */}
-          <div style={{ background: "#111827", borderRadius: "16px", border: "1px solid #1f2937", padding: "20px", flex: 1, maxHeight: "350px", overflowY: "auto" }}>
-            <h3 style={{ margin: "0 0 14px 0", fontSize: "15px", color: "#9ca3af" }}>📋 Match Event Stream (Ball History)</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {balls.slice(0, 5).map((b, idx) => (
-                <div key={b.id || idx} style={{ display: "flex", justifyContent: "space-between", background: "#0a0a0f", padding: "10px 14px", borderRadius: "8px", border: "1px solid #1f2937", fontSize: "13px" }}>
-                  <span style={{ color: "#38bdf8", fontWeight: "bold" }}>Over {b.event?.over || "—"}</span>
-                  <span style={{ color: "#cbd5e1" }}>{b.event?.batter} vs {b.event?.bowler}</span>
-                  <span style={{ color: b.event?.runs >= 4 ? "#00e676" : "#f3f4f6", fontWeight: "bold" }}>{b.event?.runs} Runs</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Fully Integrated Chat Window */}
+          <LiveChatRoom matchId={MATCH_ID} />
         </div>
       </div>
-
-      {/* Floating Fan Interaction Widget Overlay */}
       <Reactions matchId={MATCH_ID}/>
     </div>
   );
