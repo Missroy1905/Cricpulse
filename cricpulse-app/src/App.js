@@ -144,6 +144,17 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(true);
   const prevBallId = useRef(null);
   const audioRef   = useRef(new Audio());
+  const localVideoRef = useRef(null);
+
+  // Autoplay Bypass Lock: Force engine to play on render
+  useEffect(() => {
+    if (localVideoRef.current) {
+      localVideoRef.current.muted = true;
+      localVideoRef.current.play().catch((err) => {
+        console.log("Autoplay lock detected, forcing playback via interaction.", err);
+      });
+    }
+  }, [balls]);
 
   useEffect(() => {
     const q = query(collection(db, `matches/${MATCH_ID}/balls`), orderBy("timestamp", "desc"), limit(15));
@@ -180,72 +191,18 @@ export default function App() {
   return (
     <div style={{ background: "#0a0a0f", minHeight: "100vh", color: "#f3f4f6", fontFamily: "system-ui, sans-serif", padding: "16px" }}>
       
-      {/* Dynamic CSS Responsive Injection Styles */}
       <style>{`
-        .main-header {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          border-bottom: 1px solid #1f2937;
-          padding-bottom: 16px;
-          margin-bottom: 24px;
-        }
-        .score-box {
-          display: flex;
-          gap: 16px;
-          background: #111827;
-          padding: 12px 20px;
-          border-radius: 12px;
-          border: 1px solid #1f2937;
-          justify-content: space-between;
-          width: 100%;
-        }
-        .grid-container {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 24px;
-          max-width: 1600px;
-          margin: 0 auto;
-        }
-        .persona-scroller {
-          display: flex;
-          gap: 8px;
-          margin-bottom: 20px;
-          overflow-x: auto;
-          padding-bottom: 6px;
-          scrollbar-width: none;
-        }
-        .persona-scroller::-webkit-scrollbar {
-          display: none;
-        }
-        .persona-btn {
-          padding: 10px 16px;
-          border-radius: 8px;
-          border: none;
-          cursor: pointer;
-          font-weight: bold;
-          font-size: 13px;
-          white-space: nowrap;
-          transition: all 0.2s ease;
-        }
-        @media (max-width: 768px) {
-          .hide-on-mobile {
-            display: none !important;
-          }
-        }
+        .main-header { display: flex; flex-direction: column; gap: 16px; border-bottom: 1px solid #1f2937; padding-bottom: 16px; margin-bottom: 24px; }
+        .score-box { display: flex; gap: 16px; background: #111827; padding: 12px 20px; border-radius: 12px; border: 1px solid #1f2937; justify-content: space-between; width: 100%; }
+        .grid-container { display: grid; grid-template-columns: 1fr; gap: 24px; max-width: 1600px; margin: 0 auto; }
+        .persona-scroller { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+        .persona-scroller::-webkit-scrollbar { display: none; }
+        .persona-btn { padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 13px; white-space: nowrap; transition: all 0.2s ease; }
+        @media (max-width: 768px) { .hide-on-mobile { display: none !important; } }
         @media (min-width: 1024px) {
-          .main-header {
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-          }
-          .score-box {
-            width: auto;
-            gap: 24px;
-          }
-          .grid-container {
-            grid-template-columns: 1.2fr 1fr;
-          }
+          .main-header { flex-direction: row; justify-content: space-between; align-items: center; }
+          .score-box { width: auto; gap: 24px; }
+          .grid-container { grid-template-columns: 1.2fr 1fr; }
         }
       `}</style>
       
@@ -258,7 +215,6 @@ export default function App() {
           <p style={{ margin: "4px 0 0 0", fontSize: "12px", color: "#6b7280" }}>Google Cloud AI League · Cross-Platform Adaptive Interface</p>
         </div>
         
-        {/* Scoreboard Layout */}
         <div className="score-box">
           <div>
             <div style={{ fontSize: "10px", color: "#9ca3af", fontWeight: "bold" }}>RAJASTHAN ROYALS</div>
@@ -277,12 +233,13 @@ export default function App() {
         {/* COLUMN 1: Fixed Fluid Native Video Feed + AI Commentary */}
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           
-          {/* Native HTML5 Stadium Video Feed — Ultra Stable & Multi-Device Fixed */}
-          <div style={{ background: "#000", borderRadius: "16px", overflow: "hidden", aspectRatio: "16/9", position: "relative", border: "1px solid #1f2937", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
+          {/* Native HTML5 Video Player with Explicit Ref Trigger */}
+          <div style={{ background: "#000", borderRadius: "16px", overflow: "hidden", aspectRatio: "16/9", position: "relative", border: "1px solid #1f2937", minHeight: "220px", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
             <video 
-              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
+              ref={localVideoRef}
+              src="https://vjs.zencdn.net/v/oceans.mp4" 
               autoPlay 
-              muted 
+              muted
               loop 
               controls
               playsInline
