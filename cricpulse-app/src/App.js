@@ -15,60 +15,26 @@ const PERSONAS = [
   { id: "reelbrain", lang: "en", label: "🎤 Reel Brain", color: "#00bfa5" },
 ];
 
+// ── Widescreen Win Probability Bar ──
 function WinProbBar({ prediction }) {
   const batting  = prediction?.win_prob_batting  ?? 50;
   const fielding = prediction?.win_prob_fielding ?? 50;
   return (
-    <div style={{ padding: "10px 16px 4px", background: "#0d1117" }}>
-      <div style={{ display: "flex", justifycontent: "space-between", fontSize: 11, color: "#6b7280", marginBottom: 5 }}>
-        <span style={{ color: "#00e676" }}>🏏 Batting {batting}%</span>
-        <span style={{ fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase" }}>Win Probability</span>
-        <span style={{ color: "#ff5252" }}>Fielding {fielding}% 🎯</span>
+    <div style={{ padding: "16px", background: "#111827", borderRadius: "12px", border: "1px solid #1f2937", marginBottom: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#9ca3af", marginBottom: 8, fontWeight: "600" }}>
+        <span style={{ color: "#00e676" }}>🏏 Mumbai Batting: {batting}%</span>
+        <span style={{ fontSize: 11, letterSpacing: "0.1em", color: "#38bdf8" }}>LIVE WIN PREDICTION ENGINE</span>
+        <span style={{ color: "#ff5252" }}>Bangalore Fielding: {fielding}% 🎯</span>
       </div>
-      <div style={{ height: 8, borderRadius: 99, background: "#1f2937", overflow: "hidden", display: "flex" }}>
-        <div style={{ height: "100%", width: `${batting}%`, background: "linear-gradient(90deg,#00c853,#69f0ae)", transition: "width 1.2s cubic-bezier(0.4,0,0.2,1)", borderRadius: "99px 0 0 99px" }}/>
-        <div style={{ height: "100%", width: `${fielding}%`, background: "linear-gradient(270deg,#ff1744,#ff5252)", transition: "width 1.2s cubic-bezier(0.4,0,0.2,1)", borderRadius: "0 99px 99px 0" }}/>
+      <div style={{ height: 12, borderRadius: 99, background: "#1f2937", overflow: "hidden", display: "flex" }}>
+        <div style={{ height: "100%", width: `${batting}%`, background: "linear-gradient(90deg,#00c853,#69f0ae)", transition: "width 1.2s cubic-bezier(0.4,0,0.2,1)" }}/>
+        <div style={{ height: "100%", width: `${fielding}%`, background: "linear-gradient(270deg,#ff1744,#ff5252)", transition: "width 1.2s cubic-bezier(0.4,0,0.2,1)" }}/>
       </div>
     </div>
   );
 }
 
-function HalftimeCard({ ball, matchId }) {
-  const data    = ball?.personas?.analyst || {};
-  const tug     = ball?.tug_of_war       || { team_a: 0, team_b: 0 };
-  const tugTotal= (tug.team_a + tug.team_b) || 1;
-  const tugPctA = Math.round((tug.team_a / tugTotal) * 100);
-
-  const vote = async (team) => {
-    const ref = doc(db, `matches/${matchId}/balls/${ball.id}`);
-    await updateDoc(ref, { [`tug_of_war.${team}`]: increment(1) });
-  };
-
-  return (
-    <div style={{ margin: "14px", borderRadius: 20, background: "linear-gradient(135deg,#1a0533 0%,#0d1b4a 100%)", border: "1px solid #7c3aed", padding: 22 }}>
-      <div style={{ textAlign: "center", marginBottom: 16 }}>
-        <div style={{ fontSize: 36 }}>🎉</div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "#e879f9", marginTop: 6 }}>HALFTIME SHOW</div>
-        <div style={{ fontSize: 12, color: "#a78bfa", marginTop: 2 }}>Strategic Timeout</div>
-      </div>
-      {data.commentary && <div style={{ background: "#2d1b6988", borderRadius: 12, padding: "12px 14px", marginBottom: 12, color: "#e9d5ff", fontSize: 14 }}>🎁 {data.commentary}</div>}
-      {data.analysis && <div style={{ background: "#1e3a5f88", borderRadius: 12, padding: "12px 14px", marginBottom: 12, color: "#bae6fd", fontSize: 14 }}>🧠 <strong>Tactical Analysis:</strong><br/>{data.analysis}</div>}
-      {data.quiz_q && (
-        <div>
-          <div style={{ fontSize: 13, color: "#fbbf24", fontWeight: 600, marginBottom: 10 }}>🏆 {data.quiz_q}</div>
-          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
-            {[{ key: "team_a", label: "A 🟢" }, { key: "team_b", label: "B 🔴" }].map((opt) => (
-              <button key={opt.key} onClick={() => vote(opt.key)} style={{ flex: 1, padding: "13px 0", borderRadius: 12, border: "none", background: opt.key === "team_a" ? "#064e3b" : "#4c0519", color: "#fff", fontWeight: 700, cursor: "pointer" }}>
-                {opt.label} ({opt.key === "team_a" ? tug.team_a : tug.team_b} votes)
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
+// ── Live Fan Prediction Poll ──
 function BallCard({ ball, matchId, activePersona }) {
   const [voted, setVoted] = useState(false);
   const ev    = ball?.event   || {};
@@ -84,18 +50,27 @@ function BallCard({ ball, matchId, activePersona }) {
     await updateDoc(ref, { [`votes.${choice}`]: increment(1) });
   };
 
+  if (ev.type === "break") return null;
+
   return (
-    <div style={{ margin: "10px 14px", borderRadius: 16, background: "#111827", border: "1px solid #1f2937", padding: "16px 16px 14px" }}>
-      <div style={{ display: "flex", justifycontent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <span style={{ fontSize: 11, color: "#4b5563", fontFamily: "monospace" }}>Over {ev.over}</span>
-        <span style={{ fontSize: 26, fontWeight: 900, color: ev.runs >= 4 ? "#00e676" : "#e2e8f0" }}>{ev.runs} Runs</span>
-        <span style={{ fontSize: 11, color: "#6b7280", fontFamily: "monospace" }}>{ev.score}</span>
-      </div>
-      <div style={{ fontSize: 15, color: "#f3f4f6", marginBottom: 12 }}>"{pData.commentary || "Waiting for commentary..."}"</div>
-      {pData.quiz_q && !voted && (
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => castVote("yes")} style={{ flex: 1, padding: "10px", background: "#064e3b", color: "#6ee7b7", border: "none", borderRadius: 10, fontWeight: "bold", cursor: "pointer" }}>🟢 YES</button>
-          <button onClick={() => castVote("no")} style={{ flex: 1, padding: "10px", background: "#4c0519", color: "#fda4af", border: "none", borderRadius: 10, fontWeight: "bold", cursor: "pointer" }}>❌ NO</button>
+    <div style={{ background: "#111827", border: "1px solid #1f2937", borderRadius: 12, padding: 16, marginBottom: 16 }}>
+      <div style={{ fontSize: 13, color: "#a78bfa", marginBottom: 10, fontWeight: "600" }}>🔮 Live Companion Audience Poll:</div>
+      <div style={{ fontSize: 15, color: "#f3f4f6", marginBottom: 12, fontWeight: "500" }}>{pData.quiz_q || "Will the next ball be a boundary or wicket?"}</div>
+      {!voted ? (
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={() => castVote("yes")} style={{ flex: 1, padding: "12px", background: "#064e3b", color: "#6ee7b7", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer", transition: "0.2s" }}>🟢 YES</button>
+          <button onClick={() => castVote("no")} style={{ flex: 1, padding: "12px", background: "#4c0519", color: "#fda4af", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer", transition: "0.2s" }}>❌ NO</button>
+        </div>
+      ) : (
+        <div>
+          <div style={{ height: 8, borderRadius: 99, background: "#1f2937", overflow: "hidden", marginBottom: 6 }}>
+            <div style={{ height: "100%", width: `${yesPct}%`, background: "#00c853", transition: "width 0.7s ease" }}/>
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#9ca3af" }}>
+            <span>YES ({yesPct}%)</span>
+            <span>{votes.yes + votes.no} Votes</span>
+            <span>NO ({100 - yesPct}%)</span>
+          </div>
         </div>
       )}
     </div>
@@ -107,12 +82,11 @@ export default function App() {
   const [persona,   setPersona]   = useState("analyst");
   const [lang,      setLang]      = useState("en");
   const [isPlaying, setIsPlaying] = useState(true);
-  const [tab,       setTab]       = useState("feed");
   const prevBallId = useRef(null);
   const audioRef   = useRef(new Audio());
 
   useEffect(() => {
-    const q = query(collection(db, `matches/${MATCH_ID}/balls`), orderBy("timestamp", "desc"), limit(20));
+    const q = query(collection(db, `matches/${MATCH_ID}/balls`), orderBy("timestamp", "desc"), limit(15));
     return onSnapshot(q, (snap) => {
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setBalls(docs);
@@ -141,36 +115,121 @@ export default function App() {
   }, []);
 
   const latestBall = balls[0];
+  const activePersonaData = latestBall?.personas?.[persona] || {};
 
   return (
-    <div style={{ maxWidth: 430, margin: "0 auto", background: "#0d1117", minHeight: "100vh", color: "#f3f4f6", paddingBottom: 80 }}>
-      <div style={{ background: "#0d1117", padding: "16px 16px 0", position: "sticky", top: 0, zIndex: 10 }}>
-        <div style={{ display: "flex", justifycontent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <div><div style={{ fontSize: 20, fontWeight: 800 }}>🏏 CricPulse</div></div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 20, fontWeight: 700, color: "#00e676" }}>{latestBall?.event?.score || "—"}</div>
-            <div style={{ fontSize: 11, color: "#6b7280" }}>{latestBall?.event?.required || "Waiting..."}</div>
+    <div style={{ background: "#0a0a0f", minHeight: "100vh", color: "#f3f4f6", fontFamily: "system-ui, sans-serif", padding: "24px" }}>
+      
+      {/* Top Professional Navbar */}
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #1f2937", paddingBottom: "16px", marginBottom: "24px" }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: "26px", fontWeight: "800", color: "#38bdf8", letterSpacing: "-0.5px" }}>
+            🏏 CricPulse <span style={{ fontSize: "12px", background: "#0369a1", padding: "4px 10px", borderRadius: "6px", color: "#fff", marginLeft: "10px", verticalAlign: "middle" }}>AGENTIC COMPANION v2.0</span>
+          </h1>
+          <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#6b7280" }}>Google Cloud AI Hackathon · Real-time Second Screen Dashboard</p>
+        </div>
+        
+        {/* Live Score Strip */}
+        <div style={{ display: "flex", gap: "24px", background: "#111827", padding: "12px 24px", borderRadius: "12px", border: "1px solid #1f2937" }}>
+          <div style={{ textAlign: "left" }}>
+            <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "bold" }}>MUMBAI INDIANS</div>
+            <div style={{ fontSize: "22px", fontWeight: "900", color: "#00e676" }}>{latestBall?.event?.score || "0/0"}</div>
+          </div>
+          <div style={{ borderLeft: "1px solid #374151", paddingLeft: "24px", textAlign: "right" }}>
+            <div style={{ fontSize: "11px", color: "#9ca3af", fontWeight: "bold" }}>MATCH SITUATION</div>
+            <div style={{ fontSize: "14px", fontWeight: "700", color: "#38bdf8", marginTop: 6 }}>{latestBall?.event?.required || "Waiting for Feed..."}</div>
           </div>
         </div>
-        {latestBall && <WinProbBar prediction={latestBall.win_prediction}/>}
+      </header>
+
+      {/* Main 2-Column Responsive Dashboard Layout */}
+      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "24px", maxWidth: "1500px", margin: "0 auto" }}>
+        
+        {/* LEFT COLUMN: Video Stream & Live Agent Commentary */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          
+          {/* Real-time Video Stream Component */}
+          <div style={{ background: "#000", borderRadius: "16px", overflow: "hidden", aspectRatio: "16/9", position: "relative", border: "1px solid #1f2937", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
+            {/* Live Video Embedded Element */}
+            <video 
+              src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" 
+              autoPlay 
+              muted 
+              loop 
+              controls
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+            {/* Live Broadcast Badge Over Video */}
+            <div style={{ position: "absolute", top: "16px", left: "16px", background: "#ef4444", color: "#fff", padding: "4px 12px", borderRadius: "6px", fontSize: "11px", fontWeight: "bold", letterSpacing: "1px", zIndex: 5 }}>
+              🔴 LIVE MATCH STREAM
+            </div>
+            <div style={{ position: "absolute", bottom: "16px", right: "16px", background: "rgba(17,24,39,0.8)", padding: "6px 12px", borderRadius: "6px", fontSize: "12px", color: "#cbd5e1" }}>
+              Current Over: {latestBall?.event?.over || "—"}
+            </div>
+          </div>
+
+          {/* AI Persona Selector & Dynamic Box */}
+          <div style={{ background: "#111827", borderRadius: "16px", padding: "24px", border: "1px solid #1f2937" }}>
+            <h3 style={{ margin: "0 0 16px 0", color: "#38bdf8", fontSize: "16px" }}>🎙️ Multimodal Agentic Expert Panel</h3>
+            
+            {/* Persona Grid Switches */}
+            <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+              {PERSONAS.map(p => (
+                <button key={p.id} onClick={() => { setPersona(p.id); setLang(p.lang); }} style={{
+                  flex: 1, padding: "12px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "bold", fontSize: "13px",
+                  background: persona === p.id ? p.color : "#1f2937",
+                  color: persona === p.id ? "#0a0a0f" : "#9ca3af",
+                  transition: "all 0.2s ease"
+                }}>{p.label}</button>
+              ))}
+            </div>
+
+            {/* Live Synchronized Commentary Generation Box */}
+            <div style={{ background: "#0a0a0f", padding: "20px", borderRadius: "12px", border: "1px solid #1f2937", minHeight: "100px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              <p style={{ fontStyle: "italic", fontSize: "16px", color: "#e5e7eb", lineHeight: "1.6", margin: 0 }}>
+                "{activePersonaData.commentary || "Awaiting multi-agent sports data synchronization from the field..."}"
+              </p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "16px", borderTop: "1px solid #1f2937", paddingTop: "12px" }}>
+                <span style={{ fontSize: "12px", color: "#6b7280" }}>Tone Match Status: <strong style={{ color: "#22c55e" }}>ACTIVE ({activePersonaData.sentiment || "neutral"})</strong></span>
+                <button onClick={() => setIsPlaying(!isPlaying)} style={{ background: isPlaying ? "#df2020" : "#22c55e", color: "#fff", border: "none", padding: "6px 16px", borderRadius: "20px", cursor: "pointer", fontWeight: "bold", fontSize: "12px" }}>
+                  {isPlaying ? "⏸ Mute AI Multi-Voice" : "▶ Enable Live Radio Engine"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Analytics, Momentum Graphs & Interactive Widgets */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+          
+          {/* Win Probability Panel */}
+          {latestBall && <WinProbBar prediction={latestBall.win_prediction}/>}
+
+          {/* Real-time Momentum Component */}
+          <div style={{ background: "#111827", borderRadius: "16px", border: "1px solid #1f2937", padding: "20px" }}>
+            <MomentumChart />
+          </div>
+
+          {/* Live Engagement Poll Card */}
+          {latestBall && <BallCard ball={latestBall} matchId={MATCH_ID} activePersona={persona}/>}
+          
+          {/* Interactive Live Ball Event History Feed */}
+          <div style={{ background: "#111827", borderRadius: "16px", border: "1px solid #1f2937", padding: "20px", flex: 1, maxHeight: "350px", overflowY: "auto" }}>
+            <h3 style={{ margin: "0 0 14px 0", fontSize: "15px", color: "#9ca3af" }}>📋 Match Event Stream (Ball History)</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {balls.slice(0, 5).map((b, idx) => (
+                <div key={b.id || idx} style={{ display: "flex", justifyContent: "space-between", background: "#0a0a0f", padding: "10px 14px", borderRadius: "8px", border: "1px solid #1f2937", fontSize: "13px" }}>
+                  <span style={{ color: "#38bdf8", fontWeight: "bold" }}>Over {b.event?.over || "—"}</span>
+                  <span style={{ color: "#cbd5e1" }}>{b.event?.batter} vs {b.event?.bowler}</span>
+                  <span style={{ color: b.event?.runs >= 4 ? "#00e676" : "#f3f4f6", fontWeight: "bold" }}>{b.event?.runs} Runs</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div style={{ display: "flex", gap: 6, padding: "12px 14px 0", overflowX: "auto" }}>
-        {PERSONAS.map(p => (
-          <button key={p.id} onClick={() => { setPersona(p.id); setLang(p.lang); }} style={{ padding: "8px 14px", borderRadius: 99, border: "none", cursor: "pointer", background: persona === p.id ? p.color + "22" : "#1f2937", color: persona === p.id ? p.color : "#9ca3af" }}>{p.label}</button>
-        ))}
-      </div>
-
-      <div style={{ display: "flex", margin: "12px 14px 0", background: "#1f2937", borderRadius: 10, padding: 3 }}>
-        {["feed", "chart"].map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "8px 0", border: "none", borderRadius: 8, background: tab === t ? "#374151" : "transparent", color: "#fff", fontWeight: "bold", cursor: "pointer" }}>{t === "feed" ? "📡 Live Feed" : "📊 Momentum"}</button>
-        ))}
-      </div>
-
-      <div>
-        {tab === "feed" && balls.map(ball => ball.event?.type === "break" ? <HalftimeCard key={ball.id} ball={ball} matchId={MATCH_ID}/> : <BallCard key={ball.id} ball={ball} matchId={MATCH_ID} activePersona={persona}/>)}
-        {tab === "chart" && <MomentumChart />}
-      </div>
+      {/* Floating Fan Interaction Widget Overlay */}
       <Reactions matchId={MATCH_ID}/>
     </div>
   );
